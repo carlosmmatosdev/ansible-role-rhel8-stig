@@ -3,12 +3,12 @@
     name: aide
     state: present
   when:
-  - package_aide_installed | bool
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
+  - package_aide_installed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80844-4
@@ -26,12 +26,12 @@
 - name: enable fips mode
   command: /usr/bin/fips-mode-setup --enable
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
   - enable_fips_mode | bool
-  - restrict_strategy | bool
   - high_severity | bool
+  - medium_complexity | bool
   - medium_disruption | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80942-6
@@ -66,12 +66,12 @@
   - medium_severity
   - reboot_required
   when:
+  - configure_kerberos_crypto_policy | bool
   - configure_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
   - low_disruption | bool
   - medium_severity | bool
-  - configure_kerberos_crypto_policy | bool
+  - reboot_required | bool
 
 - name: Configure Libreswan to use System Crypto Policy
   lineinfile:
@@ -95,8 +95,8 @@
   - configure_libreswan_crypto_policy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure system crypto policy has OpenSSL library using TLS encryption
@@ -136,11 +136,11 @@
   - reboot_required
   - restrict_strategy
   when:
-  - reboot_required | bool
+  - configure_openssl_tls_crypto_policy | bool
   - low_complexity | bool
   - low_disruption | bool
   - medium_severity | bool
-  - configure_openssl_tls_crypto_policy | bool
+  - reboot_required | bool
   - restrict_strategy | bool
 
 - name: Test for crypto_policy group
@@ -166,12 +166,12 @@
   - no_reboot_needed
   - unknown_strategy
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - configure_openssl_crypto_policy | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Add .include for opensslcnf.config to crypto_policy section
   lineinfile:
@@ -180,12 +180,12 @@
     line: .include /etc/crypto-policies/back-ends/opensslcnf.config
     path: /etc/pki/tls/openssl.cnf
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - configure_openssl_crypto_policy | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - test_crypto_policy_group.stdout is defined
   - test_crypto_policy_group.stdout | length > 0
   tags:
@@ -213,12 +213,12 @@
       .include /etc/crypto-policies/back-ends/opensslcnf.config'
     path: /etc/pki/tls/openssl.cnf
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - configure_openssl_crypto_policy | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - test_crypto_policy_group.stdout is defined
   - test_crypto_policy_group.stdout | length < 1
   tags:
@@ -260,12 +260,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - configure_crypto_policy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
-  - configure_crypto_policy | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
-  - high_severity | bool
 
 - name: Verify that Crypto Policy is Set (runtime)
   command: /usr/bin/update-crypto-policies --set {{ var_system_crypto_policy }}
@@ -285,12 +285,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - configure_crypto_policy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
-  - configure_crypto_policy | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
-  - high_severity | bool
 
 - name: Configure SSH to use System Crypto Policy
   lineinfile:
@@ -311,12 +311,12 @@
   - medium_severity
   - reboot_required
   when:
-  - disable_strategy | bool
-  - reboot_required | bool
-  - low_complexity | bool
-  - medium_severity | bool
   - configure_ssh_crypto_policy | bool
+  - disable_strategy | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
 
 - name: 'Configure GnuTLS library to use DoD-approved TLS Encryption: Existing value check'
   lineinfile:
@@ -338,11 +338,11 @@
   - reboot_required
   - restrict_strategy
   when:
-  - reboot_required | bool
   - configure_gnutls_tls_crypto_policy | bool
   - low_complexity | bool
   - low_disruption | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
 
 - name: Configure GnuTLS library to use DoD-approved TLS Encryption
@@ -353,11 +353,11 @@
       '
     follow: true
   when:
-  - reboot_required | bool
   - configure_gnutls_tls_crypto_policy | bool
   - low_complexity | bool
   - low_disruption | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - (gnutls.found is defined and gnutls.found != 1) or gnutls.msg == "file not present"
   tags:
@@ -388,12 +388,12 @@
   - no_reboot_needed
   - unknown_strategy
   when:
-  - low_complexity | bool
-  - high_severity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - gnome_gdm_disable_automatic_login | bool
+  - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Disable GDM Automatic Login
   ini_file:
@@ -404,12 +404,12 @@
     no_extra_spaces: true
     create: true
   when:
-  - low_complexity | bool
-  - high_severity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - gnome_gdm_disable_automatic_login | bool
+  - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -441,10 +441,10 @@
   when:
   - dconf_gnome_lock_screen_on_smartcard_removal | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Detect if removal-action can be found on /etc/dconf/db/local.d/
   find:
@@ -454,10 +454,10 @@
   when:
   - dconf_gnome_lock_screen_on_smartcard_removal | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -480,10 +480,10 @@
   when:
   - dconf_gnome_lock_screen_on_smartcard_removal | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - dconf_gnome_lock_screen_on_smartcard_removal_config_files is defined and dconf_gnome_lock_screen_on_smartcard_removal_config_files.matched
@@ -509,10 +509,10 @@
   when:
   - dconf_gnome_lock_screen_on_smartcard_removal | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - dconf_gnome_lock_screen_on_smartcard_removal_config_files is defined and dconf_gnome_lock_screen_on_smartcard_removal_config_files.matched
@@ -535,10 +535,10 @@
   when:
   - dconf_gnome_lock_screen_on_smartcard_removal | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -560,10 +560,10 @@
   when:
   - dconf_gnome_lock_screen_on_smartcard_removal | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - dconf_gnome_lock_screen_on_smartcard_removal_lock_files is defined and dconf_gnome_lock_screen_on_smartcard_removal_lock_files.matched
@@ -588,10 +588,10 @@
   when:
   - dconf_gnome_lock_screen_on_smartcard_removal | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - dconf_gnome_lock_screen_on_smartcard_removal_lock_files is defined and dconf_gnome_lock_screen_on_smartcard_removal_lock_files.matched
@@ -611,10 +611,10 @@
   when:
   - dconf_gnome_lock_screen_on_smartcard_removal | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -644,22 +644,22 @@
   - no_reboot_needed
   - unknown_strategy
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_screensaver_lock_enabled | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Dconf Update
   command: dconf update
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_screensaver_lock_enabled | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ansible_distribution == 'SLES'
@@ -686,12 +686,12 @@
     create: true
     no_extra_spaces: true
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_screensaver_lock_enabled | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -715,12 +715,12 @@
     line: /org/gnome/desktop/screensaver/lock-enabled
     create: true
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_screensaver_lock_enabled | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -741,12 +741,12 @@
   command: gsettings get org.gnome.desktop.lockdown disable-lock-screen
   register: cmd_out
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_screensaver_lock_enabled | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ansible_distribution == 'SLES'
@@ -767,12 +767,12 @@
 - name: Update GNOME3 screenserver disable-lock-screen false
   command: gsettings set org.gnome.desktop.lockdown disable-lock-screen false
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_screensaver_lock_enabled | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ansible_distribution == 'SLES'
@@ -793,12 +793,12 @@
 - name: Dconf Update
   command: dconf update
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_screensaver_lock_enabled | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -835,10 +835,10 @@
   when:
   - dconf_gnome_screensaver_idle_delay | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Set GNOME3 Screensaver Inactivity Timeout
   ini_file:
@@ -851,10 +851,10 @@
   when:
   - dconf_gnome_screensaver_idle_delay | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -881,10 +881,10 @@
   when:
   - dconf_gnome_screensaver_idle_delay | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -907,10 +907,10 @@
   when:
   - dconf_gnome_screensaver_idle_delay | bool
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -946,11 +946,11 @@
   - unknown_strategy
   when:
   - dconf_gnome_disable_ctrlaltdel_reboot | bool
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Disable Ctrl-Alt-Del Reboot Key Sequence in GNOME3
   ini_file:
@@ -962,11 +962,11 @@
     no_extra_spaces: true
   when:
   - dconf_gnome_disable_ctrlaltdel_reboot | bool
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -991,11 +991,11 @@
     create: true
   when:
   - dconf_gnome_disable_ctrlaltdel_reboot | bool
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -1016,11 +1016,11 @@
   command: dconf update
   when:
   - dconf_gnome_disable_ctrlaltdel_reboot | bool
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -1051,11 +1051,11 @@
   - no_reboot_needed
   - package_rng-tools_installed
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
 
 - name: Ensure abrt-addon-ccpp is removed
   package:
@@ -1072,9 +1072,9 @@
   - package_abrt-addon-ccpp_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
 
 - name: Ensure abrt-addon-kerneloops is removed
@@ -1092,9 +1092,9 @@
   - package_abrt-addon-kerneloops_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
 
 - name: Ensure abrt-addon-python is removed
@@ -1112,9 +1112,9 @@
   - package_abrt-addon-python_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
 
 - name: Ensure abrt-cli is removed
@@ -1132,9 +1132,9 @@
   - package_abrt-cli_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
 
 - name: Ensure abrt-plugin-logger is removed
@@ -1152,9 +1152,9 @@
   - package_abrt-plugin-logger_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
 
 - name: Ensure abrt-plugin-rhtsupport is removed
@@ -1172,9 +1172,9 @@
   - package_abrt-plugin-rhtsupport_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
 
 - name: Ensure abrt-plugin-sosreport is removed
@@ -1192,9 +1192,9 @@
   - package_abrt-plugin-sosreport_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
 
 - name: Ensure gssproxy is removed
@@ -1212,11 +1212,11 @@
   - package_gssproxy_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
-  - package_gssproxy_removed | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
+  - package_gssproxy_removed | bool
 
 - name: Ensure iprutils is removed
   package:
@@ -1233,9 +1233,9 @@
   - package_iprutils_removed
   when:
   - disable_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
   - package_iprutils_removed | bool
 
@@ -1256,8 +1256,8 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Ensure tuned is removed
   package:
@@ -1274,11 +1274,11 @@
   - package_tuned_removed
   when:
   - disable_strategy | bool
-  - package_tuned_removed | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
+  - package_tuned_removed | bool
 
 - name: Gather the package facts
   package_facts:
@@ -1298,12 +1298,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_severity | bool
+  - clean_components_post_updating | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
-  - clean_components_post_updating | bool
 
 - name: Ensure YUM Removes Previous Package Versions
   lineinfile:
@@ -1313,12 +1313,12 @@
     insertafter: \[main\]
     create: true
   when:
-  - low_severity | bool
+  - clean_components_post_updating | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
-  - clean_components_post_updating | bool
   - '"yum" in ansible_facts.packages'
   tags:
   - CCE-82476-3
@@ -1361,11 +1361,11 @@
   - unknown_strategy
   when:
   - ensure_gpgcheck_globally_activated | bool
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Check existence of yum on Fedora
   stat:
@@ -1374,11 +1374,11 @@
   check_mode: false
   when:
   - ensure_gpgcheck_globally_activated | bool
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"yum" in ansible_facts.packages'
   - ansible_distribution == "Fedora"
   tags:
@@ -1413,11 +1413,11 @@
     create: false
   when:
   - ensure_gpgcheck_globally_activated | bool
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"yum" in ansible_facts.packages'
   - (ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Scientific" or yum_config_file.stat.exists)
   tags:
@@ -1452,11 +1452,11 @@
     create: false
   when:
   - ensure_gpgcheck_globally_activated | bool
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"yum" in ansible_facts.packages'
   - ansible_distribution == "Fedora"
   tags:
@@ -1501,13 +1501,13 @@
   - security_patches_up_to_date
   - skip_ansible_lint
   when:
-  - reboot_required | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - patch_strategy | bool
-  - skip_ansible_lint | bool
-  - security_patches_up_to_date | bool
   - high_severity | bool
+  - low_complexity | bool
+  - patch_strategy | bool
+  - reboot_required | bool
+  - security_patches_up_to_date | bool
+  - skip_ansible_lint | bool
 
 - name: Gather the package facts
   package_facts:
@@ -1529,12 +1529,12 @@
   - no_reboot_needed
   - unknown_strategy
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - ensure_gpgcheck_local_packages | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Check existence of yum on Fedora
   stat:
@@ -1542,12 +1542,12 @@
   register: yum_config_file
   check_mode: false
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - ensure_gpgcheck_local_packages | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"yum" in ansible_facts.packages'
   - ansible_distribution == "Fedora"
   tags:
@@ -1575,12 +1575,12 @@
     value: 1
     create: true
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - ensure_gpgcheck_local_packages | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"yum" in ansible_facts.packages'
   - (ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Scientific" or yum_config_file.stat.exists)
   tags:
@@ -1608,12 +1608,12 @@
     value: 1
     create: true
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - ensure_gpgcheck_local_packages | bool
-  - no_reboot_needed | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"yum" in ansible_facts.packages'
   - ansible_distribution == "Fedora"
   tags:
@@ -1652,8 +1652,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sudo_remove_nopasswd | bool
 
@@ -1680,8 +1680,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sudo_remove_nopasswd | bool
 
@@ -1703,8 +1703,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sudoers_validate_passwd | bool
 
@@ -1726,8 +1726,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sudoers_validate_passwd | bool
 
@@ -1749,8 +1749,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sudoers_validate_passwd | bool
 
@@ -1773,8 +1773,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sudo_remove_no_authenticate | bool
 
@@ -1801,8 +1801,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sudo_remove_no_authenticate | bool
 
@@ -1811,12 +1811,12 @@
     state: absent
     path: /etc/issue
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - banner_etc_issue | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80763-6
@@ -1838,12 +1838,12 @@
       ") | regex_replace("\(\?:\[\\n\]\+\|\(\?:\\\\n\)\+\)", "\n") | regex_replace("\\", "") | wordwrap() }}'
     create: true
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - banner_etc_issue | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80763-6
@@ -1874,12 +1874,12 @@
   - no_reboot_needed
   - unknown_strategy
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_login_banner_text | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Set the GNOME3 Login Warning Banner Text
   file:
@@ -1892,12 +1892,12 @@
   - gdm.d
   - gdm.d/locks
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_login_banner_text | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   tags:
   - CCE-80770-1
@@ -1923,12 +1923,12 @@
   - 00-security-settings
   - locks/00-security-settings-lock
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_login_banner_text | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   tags:
   - CCE-80770-1
@@ -1954,12 +1954,12 @@
     create: true
     no_extra_spaces: true
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_login_banner_text | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   tags:
   - CCE-80770-1
@@ -1982,12 +1982,12 @@
     create: true
     state: present
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_login_banner_text | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   tags:
   - CCE-80770-1
@@ -2005,12 +2005,12 @@
 - name: Dconf Update
   command: dconf update
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
   - dconf_gnome_login_banner_text | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   tags:
   - CCE-80770-1
@@ -2042,12 +2042,12 @@
   - no_reboot_needed
   - unknown_strategy
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - dconf_gnome_banner_enabled | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
 
 - name: Enable GNOME3 Login Warning Banner
   ini_file:
@@ -2058,12 +2058,12 @@
     create: true
     no_extra_spaces: true
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - dconf_gnome_banner_enabled | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   tags:
   - CCE-80768-5
@@ -2086,12 +2086,12 @@
     line: /org/gnome/login-screen/banner-message-enable
     create: true
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - dconf_gnome_banner_enabled | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   tags:
   - CCE-80768-5
@@ -2110,12 +2110,12 @@
 - name: Dconf Update
   command: dconf update
   when:
-  - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - dconf_gnome_banner_enabled | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
   - '"gdm" in ansible_facts.packages'
   tags:
   - CCE-80768-5
@@ -2152,8 +2152,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - set_password_hashing_algorithm_logindefs | bool
 
@@ -2167,8 +2167,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - set_password_hashing_algorithm_logindefs | bool
   - '"shadow-utils" in ansible_facts.packages'
@@ -2204,12 +2204,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_passwords_pam_faillock_deny_root | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_passwords_pam_faillock_deny_root | bool
 
 - name: Add auth pam_faillock preauth even_deny_root before pam_unix.so
   pamd:
@@ -2226,12 +2226,12 @@
   - system-auth
   - password-auth
   when:
+  - accounts_passwords_pam_faillock_deny_root | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_passwords_pam_faillock_deny_root | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80668-7
@@ -2258,12 +2258,12 @@
   - system-auth
   - password-auth
   when:
+  - accounts_passwords_pam_faillock_deny_root | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_passwords_pam_faillock_deny_root | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80668-7
@@ -2293,12 +2293,12 @@
   - system-auth
   - password-auth
   when:
+  - accounts_passwords_pam_faillock_deny_root | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_passwords_pam_faillock_deny_root | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80668-7
@@ -2325,12 +2325,12 @@
   - system-auth
   - password-auth
   when:
+  - accounts_passwords_pam_faillock_deny_root | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_passwords_pam_faillock_deny_root | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80668-7
@@ -2359,12 +2359,12 @@
   - system-auth
   - password-auth
   when:
+  - accounts_passwords_pam_faillock_deny_root | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_passwords_pam_faillock_deny_root | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80668-7
@@ -2397,12 +2397,12 @@
   - medium_severity
   - no_reboot_needed
   when:
-  - configure_strategy | bool
   - accounts_password_pam_unix_remember | bool
+  - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Do not allow users to reuse recent passwords - system-auth (change)
   replace:
@@ -2410,12 +2410,12 @@
     regexp: ^(password\s+sufficient\s+pam_unix\.so\s.*remember\s*=\s*)(\S+)(.*)$
     replace: \g<1>{{ var_password_pam_unix_remember }}\g<3>
   when:
-  - configure_strategy | bool
   - accounts_password_pam_unix_remember | bool
+  - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80666-1
@@ -2438,12 +2438,12 @@
     regexp: ^password\s+sufficient\s+pam_unix\.so\s(?!.*remember\s*=\s*).*$
     replace: \g<0> remember={{ var_password_pam_unix_remember }}
   when:
-  - configure_strategy | bool
   - accounts_password_pam_unix_remember | bool
+  - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80666-1
@@ -2478,8 +2478,8 @@
   - accounts_passwords_pam_faillock_interval | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Add auth pam_faillock preauth fail_interval before pam_unix.so
@@ -2500,8 +2500,8 @@
   - accounts_passwords_pam_faillock_interval | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2531,8 +2531,8 @@
   - accounts_passwords_pam_faillock_interval | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2565,8 +2565,8 @@
   - accounts_passwords_pam_faillock_interval | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2596,8 +2596,8 @@
   - accounts_passwords_pam_faillock_interval | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2629,8 +2629,8 @@
   - accounts_passwords_pam_faillock_interval | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2666,8 +2666,8 @@
   - accounts_passwords_pam_faillock_deny | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Add auth pam_faillock preauth deny before pam_unix.so
@@ -2688,8 +2688,8 @@
   - accounts_passwords_pam_faillock_deny | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2722,8 +2722,8 @@
   - accounts_passwords_pam_faillock_deny | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2759,8 +2759,8 @@
   - accounts_passwords_pam_faillock_deny | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2794,8 +2794,8 @@
   - accounts_passwords_pam_faillock_deny | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2830,8 +2830,8 @@
   - accounts_passwords_pam_faillock_deny | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2870,8 +2870,8 @@
   - accounts_passwords_pam_faillock_unlock_time | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Add auth pam_faillock preauth unlock_time before pam_unix.so
@@ -2892,8 +2892,8 @@
   - accounts_passwords_pam_faillock_unlock_time | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2926,8 +2926,8 @@
   - accounts_passwords_pam_faillock_unlock_time | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2963,8 +2963,8 @@
   - accounts_passwords_pam_faillock_unlock_time | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -2997,8 +2997,8 @@
   - accounts_passwords_pam_faillock_unlock_time | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3033,8 +3033,8 @@
   - accounts_passwords_pam_faillock_unlock_time | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3070,11 +3070,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_complexity | bool
   - accounts_password_pam_lcredit | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure PAM variable lcredit is set accordingly
@@ -3084,11 +3084,11 @@
     regexp: ^#?\s*lcredit
     line: lcredit = {{ var_password_pam_lcredit }}
   when:
-  - low_complexity | bool
   - accounts_password_pam_lcredit | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3123,12 +3123,12 @@
   - medium_severity
   - no_reboot_needed
   when:
+  - accounts_password_pam_retry | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - accounts_password_pam_retry | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Set Password Retry Prompts Permitted Per-Session - system-auth (change)
   replace:
@@ -3136,12 +3136,12 @@
     regexp: (^.*\spam_pwquality.so\s.*retry\s*=\s*)(\S+)(.*$)
     replace: \g<1>{{ var_password_pam_retry }}\g<3>
   when:
+  - accounts_password_pam_retry | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - accounts_password_pam_retry | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80664-6
@@ -3163,12 +3163,12 @@
     regexp: ^.*\spam_pwquality.so\s(?!.*retry\s*=\s*).*$
     replace: \g<0> retry={{ var_password_pam_retry }}
   when:
+  - accounts_password_pam_retry | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - accounts_password_pam_retry | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80664-6
@@ -3201,11 +3201,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_password_pam_ocredit | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - accounts_password_pam_ocredit | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure PAM variable ocredit is set accordingly
@@ -3215,11 +3215,11 @@
     regexp: ^#?\s*ocredit
     line: ocredit = {{ var_password_pam_ocredit }}
   when:
+  - accounts_password_pam_ocredit | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - accounts_password_pam_ocredit | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3252,11 +3252,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_password_pam_maxrepeat | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - accounts_password_pam_maxrepeat | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure PAM variable maxrepeat is set accordingly
@@ -3266,11 +3266,11 @@
     regexp: ^#?\s*maxrepeat
     line: maxrepeat = {{ var_password_pam_maxrepeat }}
   when:
+  - accounts_password_pam_maxrepeat | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - accounts_password_pam_maxrepeat | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3303,11 +3303,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_password_pam_maxclassrepeat | bool
   - low_complexity | bool
   - low_disruption | bool
-  - accounts_password_pam_maxclassrepeat | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure PAM variable maxclassrepeat is set accordingly
@@ -3317,11 +3317,11 @@
     regexp: ^#?\s*maxclassrepeat
     line: maxclassrepeat = {{ var_password_pam_maxclassrepeat }}
   when:
+  - accounts_password_pam_maxclassrepeat | bool
   - low_complexity | bool
   - low_disruption | bool
-  - accounts_password_pam_maxclassrepeat | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3355,11 +3355,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_complexity | bool
   - accounts_password_pam_minclass | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure PAM variable minclass is set accordingly
@@ -3369,11 +3369,11 @@
     regexp: ^#?\s*minclass
     line: minclass = {{ var_password_pam_minclass }}
   when:
-  - low_complexity | bool
   - accounts_password_pam_minclass | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3409,11 +3409,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_password_pam_minlen | bool
   - low_complexity | bool
   - low_disruption | bool
-  - accounts_password_pam_minlen | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure PAM variable minlen is set accordingly
@@ -3423,11 +3423,11 @@
     regexp: ^#?\s*minlen
     line: minlen = {{ var_password_pam_minlen }}
   when:
+  - accounts_password_pam_minlen | bool
   - low_complexity | bool
   - low_disruption | bool
-  - accounts_password_pam_minlen | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3464,11 +3464,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_complexity | bool
   - accounts_password_pam_dcredit | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure PAM variable dcredit is set accordingly
@@ -3478,11 +3478,11 @@
     regexp: ^#?\s*dcredit
     line: dcredit = {{ var_password_pam_dcredit }}
   when:
-  - low_complexity | bool
   - accounts_password_pam_dcredit | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -3518,12 +3518,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_password_pam_ucredit | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_password_pam_ucredit | bool
 
 - name: Ensure PAM variable ucredit is set accordingly
   lineinfile:
@@ -3532,12 +3532,12 @@
     regexp: ^#?\s*ucredit
     line: ucredit = {{ var_password_pam_ucredit }}
   when:
+  - accounts_password_pam_ucredit | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_password_pam_ucredit | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80665-3
@@ -3572,12 +3572,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_password_pam_difok | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_password_pam_difok | bool
 
 - name: Ensure PAM variable difok is set accordingly
   lineinfile:
@@ -3586,12 +3586,12 @@
     regexp: ^#?\s*difok
     line: difok = {{ var_password_pam_difok }}
   when:
+  - accounts_password_pam_difok | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_password_pam_difok | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-80654-7
@@ -3623,8 +3623,8 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80876-6
@@ -3649,8 +3649,8 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80876-6
@@ -3673,8 +3673,8 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"debug-shell.socket" in socket_file_exists.stdout_lines[1]'
   tags:
@@ -3697,10 +3697,10 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - restrict_strategy | bool
+  - no_reboot_needed | bool
   - require_emergency_target_auth | bool
+  - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82186-8
@@ -3734,12 +3734,12 @@
   - low_disruption
   - no_reboot_needed
   when:
-  - disable_strategy | bool
   - disable_ctrlaltdel_burstaction | bool
+  - disable_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
-  - high_severity | bool
 
 - name: Disable Ctrl-Alt-Del Burst Action
   lineinfile:
@@ -3749,12 +3749,12 @@
     line: CtrlAltDelBurstAction=none
     create: true
   when:
-  - disable_strategy | bool
   - disable_ctrlaltdel_burstaction | bool
+  - disable_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
-  - high_severity | bool
   - '"systemd" in ansible_facts.packages'
   tags:
   - CCE-80784-2
@@ -3776,12 +3776,12 @@
     masked: true
     state: stopped
   when:
+  - disable_ctrlaltdel_reboot | bool
   - disable_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
-  - disable_ctrlaltdel_reboot | bool
-  - high_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80785-9
@@ -3803,11 +3803,11 @@
     regexp: ^#?ExecStart=
     line: ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue
   when:
-  - require_singleuser_auth | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
+  - require_singleuser_auth | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -3830,12 +3830,12 @@
     name: opensc
     state: present
   when:
-  - package_opensc_installed | bool
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
+  - package_opensc_installed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80846-9
@@ -3853,12 +3853,12 @@
     name: tmux
     state: present
   when:
-  - package_tmux_installed | bool
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
+  - package_tmux_installed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80644-8
@@ -3898,12 +3898,12 @@
       line: set -g lock-command vlock
       state: present
   when:
+  - configure_tmux_lock_command | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - configure_tmux_lock_command | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80940-0
@@ -3944,12 +3944,12 @@
       line: set -g lock-after-time 900
       state: present
   when:
+  - configure_tmux_lock_after_time | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - configure_tmux_lock_after_time | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82199-1
@@ -3974,12 +3974,12 @@
   - medium_severity
   - no_reboot_needed
   when:
+  - accounts_password_pam_unix_rounds_system_auth | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - accounts_password_pam_unix_rounds_system_auth | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Configure number of system-auth password hashing rounds in pam_unix.so
   pamd:
@@ -3990,12 +3990,12 @@
     module_arguments: rounds={{ var_password_pam_unix_rounds }}
     state: args_present
   when:
+  - accounts_password_pam_unix_rounds_system_auth | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - accounts_password_pam_unix_rounds_system_auth | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-83386-3
@@ -4029,11 +4029,11 @@
   - no_reboot_needed
   when:
   - configure_strategy | bool
-  - low_complexity | bool
-  - no_reboot_needed | bool
-  - no_empty_passwords | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_empty_passwords | bool
+  - no_reboot_needed | bool
 
 - name: Prevent Log In to Accounts With Empty Password - password-auth
   replace:
@@ -4057,11 +4057,11 @@
   - no_reboot_needed
   when:
   - configure_strategy | bool
-  - low_complexity | bool
-  - no_reboot_needed | bool
-  - no_empty_passwords | bool
   - high_severity | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - no_empty_passwords | bool
+  - no_reboot_needed | bool
 
 - name: Gather the package facts
   package_facts:
@@ -4076,12 +4076,12 @@
   - medium_severity
   - no_reboot_needed
   when:
+  - accounts_password_pam_unix_rounds_password_auth | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - accounts_password_pam_unix_rounds_password_auth | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Configure number of password-auth password hashing rounds in pam_unix.so
   pamd:
@@ -4092,12 +4092,12 @@
     module_arguments: rounds={{ var_password_pam_unix_rounds }}
     state: args_present
   when:
+  - accounts_password_pam_unix_rounds_password_auth | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - accounts_password_pam_unix_rounds_password_auth | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
   - '"pam" in ansible_facts.packages'
   tags:
   - CCE-83403-6
@@ -4130,8 +4130,8 @@
   - accounts_password_minlen_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Set Password Minimum Length in login.defs
@@ -4145,8 +4145,8 @@
   - accounts_password_minlen_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"shadow-utils" in ansible_facts.packages'
   tags:
@@ -4183,11 +4183,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_maximum_age_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - accounts_maximum_age_login_defs | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Set Password Maximum Age
@@ -4197,11 +4197,11 @@
     regexp: ^#?PASS_MAX_DAYS
     line: PASS_MAX_DAYS {{ var_accounts_maximum_age_login_defs }}
   when:
+  - accounts_maximum_age_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - accounts_maximum_age_login_defs | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"shadow-utils" in ansible_facts.packages'
   tags:
@@ -4241,8 +4241,8 @@
   - accounts_minimum_age_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Set Password Minimum Age
@@ -4255,8 +4255,8 @@
   - accounts_minimum_age_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"shadow-utils" in ansible_facts.packages'
   tags:
@@ -4293,11 +4293,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - account_disable_post_pw_expiration | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - account_disable_post_pw_expiration | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Set Account Expiration Following Inactivity
@@ -4307,11 +4307,11 @@
     regexp: ^INACTIVE
     line: INACTIVE={{ var_account_disable_post_pw_expiration }}
   when:
+  - account_disable_post_pw_expiration | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - account_disable_post_pw_expiration | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"shadow-utils" in ansible_facts.packages'
   tags:
@@ -4346,10 +4346,10 @@
   - restrict_strategy
   when:
   - accounts_logon_fail_delay | bool
-  - reboot_required | bool
   - low_complexity | bool
   - low_disruption | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
 
 - name: Set accounts logon fail delay
@@ -4360,10 +4360,10 @@
     create: true
   when:
   - accounts_logon_fail_delay | bool
-  - reboot_required | bool
   - low_complexity | bool
   - low_disruption | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - '"shadow-utils" in ansible_facts.packages'
   tags:
@@ -4394,10 +4394,10 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_severity | bool
   - accounts_max_concurrent_login_sessions | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
 
@@ -4408,10 +4408,10 @@
     patterns: '*.conf'
   register: maxlogins
   when:
-  - low_severity | bool
   - accounts_max_concurrent_login_sessions | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
@@ -4436,10 +4436,10 @@
   with_items:
   - '{{ maxlogins.files }}'
   when:
-  - low_severity | bool
   - accounts_max_concurrent_login_sessions | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
@@ -4465,10 +4465,10 @@
     line: '*          hard    maxlogins     {{ var_accounts_max_concurrent_login_sessions }}'
     create: true
   when:
-  - low_severity | bool
   - accounts_max_concurrent_login_sessions | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
@@ -4499,12 +4499,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_have_homedir_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_have_homedir_login_defs | bool
 
 - name: Ensure new users receive home directories
   block:
@@ -4532,12 +4532,12 @@
       line: CREATE_HOME yes
       state: present
   when:
+  - accounts_have_homedir_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
-  - accounts_have_homedir_login_defs | bool
   - '"shadow-utils" in ansible_facts.packages'
   tags:
   - CCE-83789-8
@@ -4567,8 +4567,8 @@
   - accounts_umask_etc_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure the Default UMASK is Set Correctly
@@ -4581,8 +4581,8 @@
   - accounts_umask_etc_login_defs | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"shadow-utils" in ansible_facts.packages'
   tags:
@@ -4614,11 +4614,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - accounts_umask_etc_bashrc | bool
   - low_complexity | bool
   - low_disruption | bool
-  - accounts_umask_etc_bashrc | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure audit is installed
@@ -4626,12 +4626,12 @@
     name: audit
     state: present
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - package_audit_installed | bool
-  - enable_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81043-2
@@ -4664,12 +4664,12 @@
     when:
     - '"audit" in ansible_facts.packages'
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - service_auditd_enabled | bool
-  - enable_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80872-5
@@ -4715,11 +4715,11 @@
   - reboot_required
   - restrict_strategy
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
   - grub2_audit_argument | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
 
 - name: get current kernel parameters
@@ -4727,11 +4727,11 @@
   register: kernelopts
   changed_when: false
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
   - grub2_audit_argument | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"grub2-common" in ansible_facts.packages'
@@ -4757,11 +4757,11 @@
   command: /usr/bin/grub2-editenv - set "{{ item }} audit=1"
   with_items: '{{ kernelopts.stdout_lines | select(''match'', ''^kernelopts.*'') | list }}'
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
   - grub2_audit_argument | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"grub2-common" in ansible_facts.packages'
@@ -4800,11 +4800,11 @@
   - reboot_required
   - restrict_strategy
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
   - grub2_audit_backlog_limit_argument | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
 
 - name: get current kernel parameters
@@ -4812,11 +4812,11 @@
   register: kernelopts
   changed_when: false
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
   - grub2_audit_backlog_limit_argument | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"grub2-common" in ansible_facts.packages'
@@ -4835,11 +4835,11 @@
   command: /usr/bin/grub2-editenv - set "{{ item }} audit_backlog_limit=8192"
   with_items: '{{ kernelopts.stdout_lines | select(''match'', ''^kernelopts.*'') | list }}'
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
   - grub2_audit_backlog_limit_argument | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"grub2-common" in ansible_facts.packages'
@@ -4883,11 +4883,11 @@
       line: name_format = hostname
       state: present
   when:
+  - auditd_name_format | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - auditd_name_format | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -4908,11 +4908,11 @@
     state: present
     create: true
   when:
+  - auditd_data_retention_space_left_action | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - auditd_data_retention_space_left_action | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -4944,8 +4944,8 @@
   - auditd_data_disk_full_action | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -4971,11 +4971,11 @@
     state: present
     create: true
   when:
+  - auditd_data_retention_max_log_file_action | bool
   - low_complexity | bool
   - low_disruption | bool
-  - auditd_data_retention_max_log_file_action | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -5002,11 +5002,11 @@
     state: present
     create: true
   when:
+  - auditd_data_retention_action_mail_acct | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - auditd_data_retention_action_mail_acct | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -5055,8 +5055,8 @@
   - auditd_local_events | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -5095,11 +5095,11 @@
       line: log_format = ENRICHED
       state: present
   when:
-  - low_complexity | bool
   - auditd_log_format | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -5123,8 +5123,8 @@
   - auditd_data_disk_error_action | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -5147,11 +5147,11 @@
     name: rsyslog-gnutls
     state: present
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82859-0
@@ -5168,12 +5168,12 @@
     name: rsyslog
     state: present
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - package_rsyslog_installed | bool
-  - enable_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80847-7
@@ -5200,12 +5200,12 @@
     when:
     - '"rsyslog" in ansible_facts.packages'
   when:
-  - service_rsyslog_enabled | bool
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
+  - service_rsyslog_enabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80886-5
@@ -5228,10 +5228,10 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - rsyslog_remote_loghost | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - rsyslog_remote_loghost | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80863-4
@@ -5260,11 +5260,11 @@
   - reboot_required
   - restrict_strategy
   when:
-  - medium_complexity | bool
   - grub2_vsyscall_argument | bool
-  - reboot_required | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
 
 - name: get current kernel parameters
@@ -5272,11 +5272,11 @@
   register: kernelopts
   changed_when: false
   when:
-  - medium_complexity | bool
   - grub2_vsyscall_argument | bool
-  - reboot_required | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - '"grub2-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
@@ -5295,11 +5295,11 @@
   command: /usr/bin/grub2-editenv - set "{{ item }} vsyscall=none"
   with_items: '{{ kernelopts.stdout_lines | select(''match'', ''^kernelopts.*'') | list }}'
   when:
-  - medium_complexity | bool
   - grub2_vsyscall_argument | bool
-  - reboot_required | bool
   - low_disruption | bool
+  - medium_complexity | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - '"grub2-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
@@ -5331,24 +5331,24 @@
   - reboot_required
   - restrict_strategy
   when:
-  - medium_complexity | bool
   - grub2_pti_argument | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - restrict_strategy | bool
   - high_severity | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
 
 - name: get current kernel parameters
   command: /usr/bin/grub2-editenv - list
   register: kernelopts
   changed_when: false
   when:
-  - medium_complexity | bool
   - grub2_pti_argument | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - restrict_strategy | bool
   - high_severity | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
   - '"grub2-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -5366,12 +5366,12 @@
   command: /usr/bin/grub2-editenv - set "{{ item }} pti=on"
   with_items: '{{ kernelopts.stdout_lines | select(''match'', ''^kernelopts.*'') | list }}'
   when:
-  - medium_complexity | bool
   - grub2_pti_argument | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - restrict_strategy | bool
   - high_severity | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
   - '"grub2-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - kernelopts.stdout_lines is defined
@@ -5396,11 +5396,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
-  - sysctl_net_ipv6_conf_default_accept_ra | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv6_conf_default_accept_ra | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81007-7
@@ -5424,11 +5424,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
-  - sysctl_net_ipv6_conf_all_accept_source_route | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv6_conf_all_accept_source_route | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81013-5
@@ -5452,11 +5452,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - sysctl_net_ipv6_conf_default_accept_source_route | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv6_conf_default_accept_source_route | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81015-0
@@ -5480,11 +5480,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_net_ipv6_conf_default_accept_redirects | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv6_conf_default_accept_redirects | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81010-1
@@ -5508,11 +5508,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_net_ipv6_conf_all_accept_ra | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv6_conf_all_accept_ra | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81006-9
@@ -5536,11 +5536,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - sysctl_net_ipv6_conf_all_accept_redirects | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv6_conf_all_accept_redirects | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81009-3
@@ -5561,12 +5561,12 @@
     name: firewalld
     state: present
   when:
-  - low_complexity | bool
-  - package_firewalld_installed | bool
-  - low_disruption | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - enable_strategy | bool
+  - low_complexity | bool
+  - low_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - package_firewalld_installed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82998-6
@@ -5593,11 +5593,11 @@
     when:
     - '"firewalld" in ansible_facts.packages'
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
   - service_firewalld_enabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -5625,10 +5625,10 @@
     line: install firewire-core /bin/true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82005-0
@@ -5648,11 +5648,11 @@
     line: install can /bin/true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - kernel_module_can_disabled | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82059-7
@@ -5673,10 +5673,10 @@
   when:
   - disable_strategy | bool
   - kernel_module_tipc_disabled | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82297-3
@@ -5699,11 +5699,11 @@
     line: install atm /bin/true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
-  - low_complexity | bool
-  - medium_severity | bool
   - kernel_module_atm_disabled | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82028-2
@@ -5724,10 +5724,10 @@
   when:
   - disable_strategy | bool
   - kernel_module_sctp_disabled | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80834-5
@@ -5752,11 +5752,11 @@
     line: install bluetooth /bin/true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
-  - low_complexity | bool
-  - medium_severity | bool
-  - medium_disruption | bool
   - kernel_module_bluetooth_disabled | bool
+  - low_complexity | bool
+  - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80832-9
@@ -5780,11 +5780,11 @@
   command: nmcli radio wifi off
   when:
   - low_complexity | bool
-  - unknown_strategy | bool
-  - no_reboot_needed | bool
-  - wireless_disable_interfaces | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - unknown_strategy | bool
+  - wireless_disable_interfaces | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-83501-7
@@ -5811,11 +5811,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_net_ipv4_conf_all_send_redirects | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv4_conf_all_send_redirects | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80918-6
@@ -5842,11 +5842,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_net_ipv4_conf_default_send_redirects | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv4_conf_default_send_redirects | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80921-0
@@ -5873,11 +5873,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_net_ipv4_ip_forward | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv4_ip_forward | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81024-2
@@ -5902,12 +5902,12 @@
     state: present
     reload: true
   when:
-  - sysctl_net_ipv4_conf_default_accept_redirects | bool
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv4_conf_default_accept_redirects | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80919-4
@@ -5933,11 +5933,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_net_ipv4_conf_all_accept_redirects | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv4_conf_all_accept_redirects | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80917-8
@@ -5963,11 +5963,11 @@
     reload: true
   when:
   - disable_strategy | bool
+  - low_complexity | bool
+  - medium_disruption | bool
+  - medium_severity | bool
   - reboot_required | bool
   - sysctl_net_ipv4_conf_default_accept_source_route | bool
-  - low_complexity | bool
-  - medium_severity | bool
-  - medium_disruption | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80920-2
@@ -5993,11 +5993,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_net_ipv4_conf_all_accept_source_route | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv4_conf_all_accept_source_route | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81011-9
@@ -6023,11 +6023,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
-  - sysctl_net_ipv4_conf_all_rp_filter | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv4_conf_all_rp_filter | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81021-8
@@ -6052,11 +6052,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
-  - sysctl_net_ipv4_icmp_echo_ignore_broadcasts | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_net_ipv4_icmp_echo_ignore_broadcasts | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80922-8
@@ -6081,11 +6081,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
-  - sysctl_kernel_dmesg_restrict | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_kernel_dmesg_restrict | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80913-7
@@ -6108,11 +6108,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - sysctl_user_max_user_namespaces | bool
-  - reboot_required | bool
-  - low_severity | bool
   - low_complexity | bool
+  - low_severity | bool
   - medium_disruption | bool
+  - reboot_required | bool
+  - sysctl_user_max_user_namespaces | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82211-4
@@ -6134,11 +6134,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_kernel_yama_ptrace_scope | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_kernel_yama_ptrace_scope | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80953-3
@@ -6158,11 +6158,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
-  - sysctl_kernel_unprivileged_bpf_disabled | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_kernel_unprivileged_bpf_disabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82974-7
@@ -6182,11 +6182,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_kernel_perf_event_paranoid | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_kernel_perf_event_paranoid | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81054-9
@@ -6206,11 +6206,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - sysctl_kernel_core_pattern | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_kernel_core_pattern | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82215-5
@@ -6230,11 +6230,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - sysctl_kernel_kexec_load_disabled | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_kernel_kexec_load_disabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80952-5
@@ -6260,24 +6260,24 @@
   - reboot_required
   - restrict_strategy
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - grub2_page_poison_argument | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
 
 - name: get current kernel parameters
   command: /usr/bin/grub2-editenv - list
   register: kernelopts
   changed_when: false
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - grub2_page_poison_argument | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"grub2-common" in ansible_facts.packages'
   tags:
@@ -6295,12 +6295,12 @@
   command: /usr/bin/grub2-editenv - set "{{ item }} page_poison=1"
   with_items: '{{ kernelopts.stdout_lines | select(''match'', ''^kernelopts.*'') | list }}'
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - grub2_page_poison_argument | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"grub2-common" in ansible_facts.packages'
   - kernelopts.stdout_lines is defined
@@ -6331,24 +6331,24 @@
   - reboot_required
   - restrict_strategy
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - grub2_slub_debug_argument | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
 
 - name: get current kernel parameters
   command: /usr/bin/grub2-editenv - list
   register: kernelopts
   changed_when: false
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - grub2_slub_debug_argument | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"grub2-common" in ansible_facts.packages'
   tags:
@@ -6366,12 +6366,12 @@
   command: /usr/bin/grub2-editenv - set "{{ item }} slub_debug=P"
   with_items: '{{ kernelopts.stdout_lines | select(''match'', ''^kernelopts.*'') | list }}'
   when:
-  - medium_complexity | bool
-  - reboot_required | bool
-  - low_disruption | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - grub2_slub_debug_argument | bool
+  - low_disruption | bool
+  - medium_complexity | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - restrict_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"grub2-common" in ansible_facts.packages'
   - kernelopts.stdout_lines is defined
@@ -6403,8 +6403,8 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82881-4
@@ -6428,8 +6428,8 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82881-4
@@ -6451,8 +6451,8 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"systemd-coredump.socket" in socket_file_exists.stdout_lines[1]'
   tags:
@@ -6500,11 +6500,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - coredump_disable_backtraces | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - coredump_disable_backtraces | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Gather the package facts
@@ -6520,11 +6520,11 @@
   - no_reboot_needed
   - restrict_strategy
   when:
+  - disable_users_coredumps | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - disable_users_coredumps | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: disable core dumps with limits
@@ -6534,11 +6534,11 @@
     line: '*        hard       core      0'
     create: true
   when:
+  - disable_users_coredumps | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - disable_users_coredumps | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - '"pam" in ansible_facts.packages'
   tags:
@@ -6589,8 +6589,8 @@
   - coredump_disable_storage | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure sysctl kernel.randomize_va_space is set to 2
@@ -6601,11 +6601,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - sysctl_kernel_randomize_va_space | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_kernel_randomize_va_space | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80916-0
@@ -6629,11 +6629,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - sysctl_kernel_kptr_restrict | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_kernel_kptr_restrict | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80915-2
@@ -6657,11 +6657,11 @@
     reload: true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
-  - sysctl_fs_protected_symlinks | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_fs_protected_symlinks | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81030-9
@@ -6707,12 +6707,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - dir_perms_world_writable_root_owned | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Create empty list of excluded paths
   set_fact:
@@ -6727,24 +6727,24 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - dir_perms_world_writable_root_owned | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Detect nonlocal file systems and add them to excluded paths
   set_fact:
     excluded_paths: '{{ excluded_paths | union([item.mount]) }}'
   loop: '{{ ansible_mounts }}'
   when:
-  - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - dir_perms_world_writable_root_owned | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
   - item.fstype in excluded_fstypes
   tags:
   - CCE-83375-6
@@ -6774,12 +6774,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - dir_perms_world_writable_root_owned | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Create list of world writable directories
   set_fact:
@@ -6794,12 +6794,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - dir_perms_world_writable_root_owned | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Change owner to root on directories which are world writable
   file:
@@ -6817,12 +6817,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - dir_perms_world_writable_root_owned | bool
+  - low_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Get all world-writable directories with no sticky bits set
   shell: 'set -o pipefail
@@ -6847,8 +6847,8 @@
   - dir_perms_world_writable_sticky_bits | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: ensure sticky bit is set
@@ -6872,8 +6872,8 @@
   - dir_perms_world_writable_sticky_bits | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
 
 - name: Ensure sysctl fs.protected_hardlinks is set to 1
@@ -6883,12 +6883,12 @@
     state: present
     reload: true
   when:
-  - sysctl_fs_protected_hardlinks | bool
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
+  - sysctl_fs_protected_hardlinks | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81027-5
@@ -6920,12 +6920,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - medium_complexity | bool
   - file_permissions_binary_dirs | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
+  - medium_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Remove world/group writability of system executables
   file:
@@ -6933,12 +6933,12 @@
     mode: go-w
   with_items: '{{ world_writable_library_files.stdout_lines }}'
   when:
-  - medium_complexity | bool
   - file_permissions_binary_dirs | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
+  - medium_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
   - world_writable_library_files.stdout_lines | length > 0
   tags:
   - CCE-80809-7
@@ -6970,12 +6970,12 @@
   - no_reboot_needed
   - restrict_strategy
   when:
-  - medium_complexity | bool
   - file_ownership_binary_dirs | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
+  - medium_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Set ownership to root of system executables
   file:
@@ -6983,12 +6983,12 @@
     owner: root
   with_items: '{{ no_root_system_executables.stdout_lines }}'
   when:
-  - medium_complexity | bool
   - file_ownership_binary_dirs | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
+  - medium_complexity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
   - no_root_system_executables.stdout_lines | length > 0
   tags:
   - CCE-80806-3
@@ -7022,10 +7022,10 @@
   when:
   - file_permissions_library_dirs | bool
   - high_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Disable world/group writability to library files
   file:
@@ -7035,10 +7035,10 @@
   when:
   - file_permissions_library_dirs | bool
   - high_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
   - world_writable_library_files.stdout_lines | length > 0
   tags:
   - CCE-80815-4
@@ -7072,10 +7072,10 @@
   when:
   - file_ownership_library_dirs | bool
   - medium_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
 
 - name: Set ownership of system libraries to root
   file:
@@ -7085,10 +7085,10 @@
   when:
   - file_ownership_library_dirs | bool
   - medium_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
-  - restrict_strategy | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - restrict_strategy | bool
   - libraries_not_owned_by_root | length > 0
   tags:
   - CCE-80807-1
@@ -7117,11 +7117,11 @@
   - no_reboot_needed
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - file_owner_var_log_messages | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Ensure owner 0 on /var/log/messages
   file:
@@ -7129,11 +7129,11 @@
     owner: '0'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - file_owner_var_log_messages | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - file_exists.stat is defined and file_exists.stat.exists
   tags:
   - CCE-83662-7
@@ -7163,8 +7163,8 @@
   - file_groupowner_var_log_messages | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Ensure group owner 0 on /var/log/messages
   file:
@@ -7175,8 +7175,8 @@
   - file_groupowner_var_log_messages | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - file_exists.stat is defined and file_exists.stat.exists
   tags:
   - CCE-83660-1
@@ -7203,11 +7203,11 @@
   - no_reboot_needed
   when:
   - configure_strategy | bool
+  - file_permissions_var_log | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - file_permissions_var_log | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Ensure permission 0755 on /var/log/
   file:
@@ -7215,11 +7215,11 @@
     mode: '0755'
   when:
   - configure_strategy | bool
+  - file_permissions_var_log | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - file_permissions_var_log | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - file_exists.stat is defined and file_exists.stat.exists
   tags:
   - CCE-83663-5
@@ -7246,11 +7246,11 @@
   - no_reboot_needed
   when:
   - configure_strategy | bool
+  - file_groupowner_var_log | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - file_groupowner_var_log | bool
+  - no_reboot_needed | bool
 
 - name: Ensure group owner 0 on /var/log/
   file:
@@ -7258,11 +7258,11 @@
     group: '0'
   when:
   - configure_strategy | bool
+  - file_groupowner_var_log | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - file_groupowner_var_log | bool
+  - no_reboot_needed | bool
   - file_exists.stat is defined and file_exists.stat.exists
   tags:
   - CCE-83659-3
@@ -7289,11 +7289,11 @@
   - no_reboot_needed
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - file_owner_var_log | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Ensure owner 0 on /var/log/
   file:
@@ -7301,11 +7301,11 @@
     owner: '0'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - file_owner_var_log | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - file_exists.stat is defined and file_exists.stat.exists
   tags:
   - CCE-83661-9
@@ -7335,8 +7335,8 @@
   - file_permissions_var_log_messages | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
 
 - name: Ensure permission 0640 on /var/log/messages
   file:
@@ -7347,8 +7347,8 @@
   - file_permissions_var_log_messages | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - file_exists.stat is defined and file_exists.stat.exists
   tags:
   - CCE-83665-0
@@ -7366,12 +7366,12 @@
   failed_when: device_name.rc > 1
   changed_when: false
   when:
-  - mount_option_boot_nosuid | bool
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_boot_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81033-3
@@ -7396,12 +7396,12 @@
   - '{{ device_name.stdout_lines[0].split() | list | lower }}'
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
-  - mount_option_boot_nosuid | bool
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_boot_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -7434,12 +7434,12 @@
     - ''
     - defaults
   when:
-  - mount_option_boot_nosuid | bool
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_boot_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -7463,12 +7463,12 @@
   set_fact:
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nosuid'' }) }}'
   when:
-  - mount_option_boot_nosuid | bool
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_boot_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nosuid" not in mount_info.options
   tags:
@@ -7495,12 +7495,12 @@
     state: mounted
     fstype: '{{ mount_info.fstype }}'
   when:
-  - mount_option_boot_nosuid | bool
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_boot_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -7526,11 +7526,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82068-8
@@ -7550,11 +7550,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -7582,11 +7582,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -7605,11 +7605,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nodev'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nodev" not in mount_info.options
   tags:
@@ -7631,11 +7631,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -7656,11 +7656,11 @@
     line: \1 \2 \3 \4,nodev \5
   when:
   - configure_strategy | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
+  - low_severity | bool
   - mount_option_nodev_removable_partitions | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82742-8
@@ -7685,11 +7685,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82008-4
@@ -7715,11 +7715,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -7753,11 +7753,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -7782,11 +7782,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',noexec'' }) }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "noexec" not in mount_info.options
   tags:
@@ -7814,11 +7814,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -7844,12 +7844,12 @@
     backrefs: true
     line: \1 \2 \3 \4,nosuid \5
   when:
-  - mount_option_nosuid_removable_partitions | bool
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_nosuid_removable_partitions | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82744-4
@@ -7874,11 +7874,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82077-9
@@ -7904,11 +7904,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -7942,11 +7942,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -7971,11 +7971,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nodev'' }) }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nodev" not in mount_info.options
   tags:
@@ -8003,11 +8003,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_var_log_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -8033,11 +8033,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_var_log_audit_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82921-8
@@ -8063,11 +8063,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_var_log_audit_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -8101,11 +8101,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_var_log_audit_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -8130,11 +8130,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nosuid'' }) }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_var_log_audit_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nosuid" not in mount_info.options
   tags:
@@ -8162,11 +8162,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_var_log_audit_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -8192,11 +8192,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82154-6
@@ -8216,11 +8216,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -8248,11 +8248,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -8271,11 +8271,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nosuid'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nosuid" not in mount_info.options
   tags:
@@ -8297,11 +8297,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -8321,11 +8321,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82975-4
@@ -8351,11 +8351,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -8389,11 +8389,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -8418,11 +8418,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',noexec'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "noexec" not in mount_info.options
   tags:
@@ -8450,11 +8450,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -8480,11 +8480,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82139-7
@@ -8510,11 +8510,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -8548,11 +8548,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -8577,11 +8577,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',noexec'' }) }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "noexec" not in mount_info.options
   tags:
@@ -8609,11 +8609,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
   - mount_option_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -8639,11 +8639,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82151-2
@@ -8663,11 +8663,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -8695,11 +8695,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -8718,11 +8718,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',noexec'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "noexec" not in mount_info.options
   tags:
@@ -8744,11 +8744,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_tmp_noexec | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_tmp_noexec | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -8770,11 +8770,11 @@
     fstype: '{{ item.fstype }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_nodev_nonroot_local_partitions | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - item.mount is match('/\w')
   - item.options is not search('nodev')
@@ -8803,11 +8803,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_home_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_home_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81050-7
@@ -8833,11 +8833,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_home_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_home_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -8871,11 +8871,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_home_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_home_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -8900,11 +8900,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nosuid'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_home_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_home_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nosuid" not in mount_info.options
   tags:
@@ -8932,11 +8932,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_home_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_home_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -8962,10 +8962,10 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_nosuid | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_nosuid | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -8992,10 +8992,10 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_nosuid | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_nosuid | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
@@ -9030,10 +9030,10 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_nosuid | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_nosuid | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("" | length == 0)
@@ -9059,10 +9059,10 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nosuid'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_nosuid | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_nosuid | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nosuid" not in mount_info.options
@@ -9091,10 +9091,10 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_nosuid | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_nosuid | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("" | length == 0)
@@ -9122,11 +9122,11 @@
     line: \1 \2 \3 \4,noexec \5
   when:
   - configure_strategy | bool
-  - mount_option_noexec_removable_partitions | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_noexec_removable_partitions | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82746-9
@@ -9151,10 +9151,10 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_noexec | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_noexec | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -9181,10 +9181,10 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_noexec | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_noexec | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
@@ -9219,10 +9219,10 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_noexec | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_noexec | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("" | length == 0)
@@ -9248,10 +9248,10 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',noexec'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_noexec | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_noexec | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "noexec" not in mount_info.options
@@ -9280,10 +9280,10 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_dev_shm_noexec | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - mount_option_dev_shm_noexec | bool
   - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("" | length == 0)
@@ -9310,11 +9310,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82080-3
@@ -9340,11 +9340,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -9378,11 +9378,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -9407,11 +9407,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nodev'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nodev" not in mount_info.options
   tags:
@@ -9439,11 +9439,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_audit_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_audit_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -9469,11 +9469,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82623-0
@@ -9499,11 +9499,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -9537,11 +9537,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -9566,11 +9566,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nodev'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nodev" not in mount_info.options
   tags:
@@ -9598,11 +9598,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_tmp_nodev | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_tmp_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -9628,11 +9628,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - mount_option_var_log_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82065-4
@@ -9658,11 +9658,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -9696,11 +9696,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - mount_option_var_log_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -9725,11 +9725,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nosuid'' }) }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nosuid" not in mount_info.options
   tags:
@@ -9757,11 +9757,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - mount_option_var_log_nosuid | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
   - medium_severity | bool
+  - mount_option_var_log_nosuid | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -9787,11 +9787,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_tmp_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82140-5
@@ -9817,11 +9817,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_tmp_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -9855,11 +9855,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_tmp_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("--fstab" | length == 0)
   - (device_name.stdout | length == 0)
@@ -9884,11 +9884,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nosuid'' }) }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_tmp_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nosuid" not in mount_info.options
   tags:
@@ -9916,11 +9916,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - high_disruption | bool
+  - low_complexity | bool
+  - medium_severity | bool
   - mount_option_tmp_nosuid | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("--fstab" | length == 0)
   tags:
@@ -9946,11 +9946,11 @@
   changed_when: false
   when:
   - configure_strategy | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
+  - low_severity | bool
   - mount_option_dev_shm_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80837-8
@@ -9976,11 +9976,11 @@
   - '{{ device_name.stdout_lines[1].split() | list }}'
   when:
   - configure_strategy | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
+  - low_severity | bool
   - mount_option_dev_shm_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - device_name.stdout is defined and device_name.stdout_lines is defined
   - (device_name.stdout | length > 0)
@@ -10014,11 +10014,11 @@
     - defaults
   when:
   - configure_strategy | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
+  - low_severity | bool
   - mount_option_dev_shm_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - ("" | length == 0)
   - (device_name.stdout | length == 0)
@@ -10043,11 +10043,11 @@
     mount_info: '{{ mount_info | combine( {''options'':''''~mount_info.options~'',nodev'' }) }}'
   when:
   - configure_strategy | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
+  - low_severity | bool
   - mount_option_dev_shm_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - mount_info is defined and "nodev" not in mount_info.options
   tags:
@@ -10075,11 +10075,11 @@
     fstype: '{{ mount_info.fstype }}'
   when:
   - configure_strategy | bool
-  - low_severity | bool
-  - low_complexity | bool
   - high_disruption | bool
-  - no_reboot_needed | bool
+  - low_complexity | bool
+  - low_severity | bool
   - mount_option_dev_shm_nodev | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (device_name.stdout is defined and (device_name.stdout | length > 0)) or ("" | length == 0)
   tags:
@@ -10113,9 +10113,9 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
+  - medium_severity | bool
   - no_reboot_needed | bool
   - service_autofs_disabled | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80873-3
@@ -10144,9 +10144,9 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
+  - medium_severity | bool
   - no_reboot_needed | bool
   - service_autofs_disabled | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80873-3
@@ -10173,9 +10173,9 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
+  - medium_severity | bool
   - no_reboot_needed | bool
   - service_autofs_disabled | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"autofs.socket" in socket_file_exists.stdout_lines[1]'
   tags:
@@ -10201,11 +10201,11 @@
     line: install cramfs /bin/true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
-  - low_severity | bool
-  - low_complexity | bool
-  - medium_disruption | bool
   - kernel_module_cramfs_disabled | bool
+  - low_complexity | bool
+  - low_severity | bool
+  - medium_disruption | bool
+  - reboot_required | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81031-7
@@ -10229,10 +10229,10 @@
     line: install usb-storage /bin/true
   when:
   - disable_strategy | bool
-  - reboot_required | bool
   - low_complexity | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - reboot_required | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80835-2
@@ -10254,12 +10254,12 @@
     name: policycoreutils
     state: present
   when:
-  - package_policycoreutils_installed | bool
+  - enable_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
-  - high_severity | bool
-  - enable_strategy | bool
+  - package_policycoreutils_installed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82976-2
@@ -10297,10 +10297,10 @@
       line: SELINUXTYPE={{ var_selinux_policy_name }}
       state: present
   when:
-  - reboot_required | bool
   - low_complexity | bool
   - low_disruption | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
   - selinux_policytype | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
@@ -10348,8 +10348,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - selinux_state | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
@@ -10387,10 +10387,10 @@
   - package_tftp-server_removed
   when:
   - disable_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
-  - high_severity | bool
 
 - name: Find out if the file exists and contains the line configuring server arguments
   find:
@@ -10412,11 +10412,11 @@
   - tftpd_uses_secure_mode
   when:
   - configure_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
   - tftpd_uses_secure_mode | bool
-  - high_severity | bool
 
 - name: Ensure that TFTP server is configured to start with secure directory
   lineinfile:
@@ -10427,11 +10427,11 @@
     backrefs: true
   when:
   - configure_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
   - tftpd_uses_secure_mode | bool
-  - high_severity | bool
   - tftpd_secure_config_line is defined and tftpd_secure_config_line.matched > 0
   tags:
   - CCE-82434-2
@@ -10454,11 +10454,11 @@
     create: true
   when:
   - configure_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
   - tftpd_uses_secure_mode | bool
-  - high_severity | bool
   - tftpd_secure_config_line is defined and tftpd_secure_config_line.matched == 0
   tags:
   - CCE-82434-2
@@ -10491,10 +10491,10 @@
   - package_telnet-server_removed
   when:
   - disable_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
-  - high_severity | bool
 
 - name: Ensure rsh-server is removed
   package:
@@ -10515,10 +10515,10 @@
   - package_rsh-server_removed
   when:
   - disable_strategy | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
-  - high_severity | bool
 
 - name: Ensure usbguard is installed
   package:
@@ -10534,12 +10534,12 @@
   - no_reboot_needed
   - package_usbguard_installed
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - package_usbguard_installed | bool
-  - enable_strategy | bool
 
 - name: Enable service usbguard
   block:
@@ -10555,12 +10555,12 @@
     when:
     - '"usbguard" in ansible_facts.packages'
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
+  - medium_severity | bool
   - no_reboot_needed | bool
   - service_usbguard_enabled | bool
-  - medium_severity | bool
-  - enable_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82853-3
@@ -10589,10 +10589,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - sssd_enable_smartcards | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - sssd_enable_smartcards | bool
 
 - name: Test for domain group
   command: grep '\s*\[domain\/[^]]*]' /etc/sssd/sssd.conf
@@ -10603,10 +10603,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - sssd_enable_smartcards | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - sssd_enable_smartcards | bool
   - '"sssd-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -10637,10 +10637,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - sssd_enable_smartcards | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - sssd_enable_smartcards | bool
   - '"sssd-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - test_grep_domain.stdout is defined
@@ -10666,10 +10666,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - sssd_enable_smartcards | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - sssd_enable_smartcards | bool
   - '"sssd-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -10699,10 +10699,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - sssd_offline_cred_expiration | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - sssd_offline_cred_expiration | bool
 
 - name: Test for domain group
   command: grep '\s*\[domain\/[^]]*]' /etc/sssd/sssd.conf
@@ -10713,10 +10713,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - sssd_offline_cred_expiration | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - sssd_offline_cred_expiration | bool
   - '"sssd-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -10749,10 +10749,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - sssd_offline_cred_expiration | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - sssd_offline_cred_expiration | bool
   - '"sssd-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - test_grep_domain.stdout is defined
@@ -10780,10 +10780,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - sssd_offline_cred_expiration | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - no_reboot_needed | bool
+  - sssd_offline_cred_expiration | bool
   - '"sssd-common" in ansible_facts.packages'
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -10806,9 +10806,9 @@
   - disable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
+  - medium_severity | bool
   - no_reboot_needed | bool
   - package_sendmail_removed | bool
-  - medium_severity | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-81039-0
@@ -10831,12 +10831,12 @@
     create: true
     state: present
   when:
-  - postfix_client_configure_mail_alias | bool
   - configure_strategy | bool
-  - low_severity | bool
   - low_complexity | bool
   - low_disruption | bool
+  - low_severity | bool
   - no_reboot_needed | bool
+  - postfix_client_configure_mail_alias | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82381-5
@@ -10854,12 +10854,12 @@
     name: fapolicyd
     state: present
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
+  - medium_severity | bool
   - no_reboot_needed | bool
   - package_fapolicyd_installed | bool
-  - medium_severity | bool
-  - enable_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82191-8
@@ -10887,12 +10887,12 @@
     when:
     - '"fapolicyd" in ansible_facts.packages'
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - service_fapolicyd_enabled | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
+  - service_fapolicyd_enabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82249-4
@@ -10924,11 +10924,11 @@
   - package_vsftpd_removed
   when:
   - disable_strategy | bool
-  - package_vsftpd_removed | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
-  - high_severity | bool
+  - package_vsftpd_removed | bool
 
 - name: Enable service rngd
   block:
@@ -10944,12 +10944,12 @@
     when:
     - '"rng-tools" in ansible_facts.packages'
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - service_rngd_enabled | bool
-  - enable_strategy | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82831-9
@@ -10966,11 +10966,11 @@
     name: openssh-server
     state: present
   when:
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-83303-8
@@ -10997,12 +10997,12 @@
     when:
     - '"openssh-server" in ansible_facts.packages'
   when:
-  - service_sshd_enabled | bool
+  - enable_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - enable_strategy | bool
+  - no_reboot_needed | bool
+  - service_sshd_enabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82426-8
@@ -11031,11 +11031,11 @@
   register: files_found
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - file_permissions_sshd_pub_key | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82428-4
@@ -11060,11 +11060,11 @@
   - '{{ files_found.files }}'
   when:
   - configure_strategy | bool
-  - low_complexity | bool
   - file_permissions_sshd_pub_key | bool
+  - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82428-4
@@ -11089,11 +11089,11 @@
   register: files_found
   when:
   - configure_strategy | bool
+  - file_permissions_sshd_private_key | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - file_permissions_sshd_private_key | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82424-3
@@ -11118,11 +11118,11 @@
   - '{{ files_found.files }}'
   when:
   - configure_strategy | bool
+  - file_permissions_sshd_private_key | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - file_permissions_sshd_private_key | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82424-3
@@ -11169,10 +11169,10 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - sshd_enable_strictmodes | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_enable_strictmodes | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80904-6
@@ -11218,10 +11218,10 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - sshd_disable_user_known_hosts | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_disable_user_known_hosts | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80902-0
@@ -11268,8 +11268,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sshd_enable_warning_banner | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
@@ -11317,12 +11317,12 @@
       insertbefore: ^[#\s]*Match
       validate: /usr/sbin/sshd -t -f %s
   when:
-  - sshd_print_last_log | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_print_last_log | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82281-7
@@ -11365,12 +11365,12 @@
       insertbefore: ^[#\s]*Match
       validate: /usr/sbin/sshd -t -f %s
   when:
-  - sshd_disable_root_login | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_disable_root_login | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80901-2
@@ -11423,8 +11423,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sshd_disable_gssapi_auth | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
@@ -11471,12 +11471,12 @@
       insertbefore: ^[#\s]*Match
       validate: /usr/sbin/sshd -t -f %s
   when:
-  - sshd_disable_kerb_auth | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_disable_kerb_auth | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80898-0
@@ -11522,11 +11522,11 @@
       validate: /usr/sbin/sshd -t -f %s
   when:
   - configure_strategy | bool
-  - sshd_rekey_limit | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
+  - sshd_rekey_limit | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82177-7
@@ -11568,10 +11568,10 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
-  - sshd_x11_use_localhost | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_x11_use_localhost | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-84058-7
@@ -11613,11 +11613,11 @@
       validate: /usr/sbin/sshd -t -f %s
   when:
   - low_complexity | bool
-  - sshd_disable_compression | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_disable_compression | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80895-6
@@ -11662,12 +11662,12 @@
       insertbefore: ^[#\s]*Match
       validate: /usr/sbin/sshd -t -f %s
   when:
-  - sshd_disable_empty_passwords | bool
+  - high_severity | bool
   - low_complexity | bool
   - low_disruption | bool
   - no_reboot_needed | bool
   - restrict_strategy | bool
-  - high_severity | bool
+  - sshd_disable_empty_passwords | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80896-4
@@ -11716,10 +11716,10 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - sshd_set_idle_timeout | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_set_idle_timeout | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80906-1
@@ -11769,12 +11769,12 @@
       insertbefore: ^[#\s]*Match
       validate: /usr/sbin/sshd -t -f %s
   when:
-  - sshd_disable_x11_forwarding | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_disable_x11_forwarding | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-83360-8
@@ -11817,10 +11817,10 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
-  - sshd_set_keepalive_0 | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_set_keepalive_0 | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-83405-1
@@ -11868,12 +11868,12 @@
       insertbefore: ^# SSH_USE_STRONG_RNG
       validate: /usr/bin/bash -n %s
   when:
-  - sshd_use_strong_rng | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
+  - sshd_use_strong_rng | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-82462-3
@@ -11915,8 +11915,8 @@
   when:
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - restrict_strategy | bool
   - sshd_do_not_permit_user_env | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
@@ -11946,8 +11946,8 @@
   - configure_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ssh_client_rekey_limit | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -11970,8 +11970,8 @@
   - configure_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ssh_client_rekey_limit | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -11994,8 +11994,8 @@
   - configure_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ssh_client_rekey_limit | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -12019,8 +12019,8 @@
   - configure_strategy | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
   - ssh_client_rekey_limit | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
@@ -12042,10 +12042,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
+  - medium_disruption | bool
+  - medium_severity | bool
   - mount_option_noexec_remote_filesystems | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
-  - medium_disruption | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-84050-4
@@ -12071,10 +12071,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
+  - medium_disruption | bool
+  - medium_severity | bool
   - mount_option_noexec_remote_filesystems | bool
   - no_reboot_needed | bool
-  - medium_severity | bool
-  - medium_disruption | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (points_register.stdout | length > 0)
   with_items: '{{ points_register.stdout_lines }}'
@@ -12099,12 +12099,12 @@
   changed_when: false
   failed_when: false
   when:
-  - mount_option_nodev_remote_filesystems | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - mount_option_nodev_remote_filesystems | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-84052-0
@@ -12126,12 +12126,12 @@
     state: mounted
     opts: '{{ item.split()[3] }},nodev'
   when:
-  - mount_option_nodev_remote_filesystems | bool
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
+  - mount_option_nodev_remote_filesystems | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (points_register.stdout | length > 0)
   with_items: '{{ points_register.stdout_lines }}'
@@ -12156,10 +12156,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
   - mount_option_nosuid_remote_filesystems | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-84053-8
@@ -12184,10 +12184,10 @@
   when:
   - configure_strategy | bool
   - low_complexity | bool
-  - no_reboot_needed | bool
-  - medium_severity | bool
   - medium_disruption | bool
+  - medium_severity | bool
   - mount_option_nosuid_remote_filesystems | bool
+  - no_reboot_needed | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - (points_register.stdout | length > 0)
   with_items: '{{ points_register.stdout_lines }}'
@@ -12223,12 +12223,12 @@
   - restrict_strategy
   - xwindows_remove_packages
   when:
-  - reboot_required | bool
   - low_complexity | bool
   - low_disruption | bool
-  - xwindows_remove_packages | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
+  - xwindows_remove_packages | bool
 
 - name: Switch to multi-user runlevel
   file:
@@ -12247,12 +12247,12 @@
   - restrict_strategy
   - xwindows_remove_packages
   when:
-  - reboot_required | bool
   - low_complexity | bool
   - low_disruption | bool
-  - xwindows_remove_packages | bool
   - medium_severity | bool
+  - reboot_required | bool
   - restrict_strategy | bool
+  - xwindows_remove_packages | bool
 
 - name: Ensure abrt is removed
   package:
@@ -12269,11 +12269,11 @@
   - package_abrt_removed
   when:
   - disable_strategy | bool
-  - package_abrt_removed | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
+  - package_abrt_removed | bool
 
 - name: Disable service kdump
   block:
@@ -12288,11 +12288,11 @@
     when: '"kdump.service" in ansible_facts.services'
   when:
   - disable_strategy | bool
-  - service_kdump_disabled | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
+  - service_kdump_disabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80878-2
@@ -12317,11 +12317,11 @@
   check_mode: false
   when:
   - disable_strategy | bool
-  - service_kdump_disabled | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
+  - service_kdump_disabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   tags:
   - CCE-80878-2
@@ -12344,11 +12344,11 @@
     masked: 'yes'
   when:
   - disable_strategy | bool
-  - service_kdump_disabled | bool
   - low_complexity | bool
   - low_disruption | bool
-  - no_reboot_needed | bool
   - medium_severity | bool
+  - no_reboot_needed | bool
+  - service_kdump_disabled | bool
   - ansible_virtualization_type not in ["docker", "lxc", "openvz", "podman", "container"]
   - '"kdump.socket" in socket_file_exists.stdout_lines[1]'
   tags:
