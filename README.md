@@ -15,7 +15,7 @@ Red Hat technologies that are based on Red Hat Enterprise Linux 8, such as:
 - Red Hat Storage  
 - Red Hat Containers with a Red Hat Enterprise Linux 8 image
 
-The tasks that are used in this role are generated using OpenSCAP. Testing 123.
+The tasks that are used in this role are generated using OpenSCAP.
 See the OpenSCAP project for more details on Ansible playbook generation at [https://github.com/OpenSCAP/openscap](https://github.com/OpenSCAP/openscap)
 
 To submit a fix or enhancement for an Ansible task that is failing or missing in this role,
